@@ -18,6 +18,38 @@
 #define BULLETIN_CONNECT_ERROR         (-3)
 #define BULLETIN_TALK_ERROR            (-4)
 
+char *keyValue(char *key, char *value) {
+
+  char *tokenizedString;
+  strcat(tokenizedString,"$$");
+  strcat(tokenizedString,key);
+  strcat(tokenizedString,"$$");
+  strcat(tokenizedString,value);
+  return tokenizedString;
+}
+
+char *getVal(char *key, char *info) {
+  int j = 0;
+  char *value = malloc(128);
+  char *str;
+  char *src = malloc(sizeof(key));
+
+  for(int i = 0; info[i] != NULL; i++) {
+    if (info[i] == key[0]) {
+      str = info[i];
+      strncpy(src, str, sizeof(key));
+      if (strcmp(src,key)) {
+        str = info[i + strlen(key) + 1];
+        strncpy(value,str,128);
+        value = strtok(value,"$$");
+        return value;  
+      }
+    }
+  }
+
+  return NULL;
+}
+
 //
 // recv_string
 //
