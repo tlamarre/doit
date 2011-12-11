@@ -248,7 +248,6 @@ int main(int argc, char **argv) {
   fprintf(stderr,"You have run bulletin with %d argc's\n", argc);
 
   if (argc == 2) {
-      while(
       connect_result = bulletin_set_up_listener(atoi(argv[1]),&listener);
       if (connect_result < 0) bulletin_exit(connect_result);
     fprintf(stderr,"You have successfully chosen to be a server.\n");
