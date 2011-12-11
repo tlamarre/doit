@@ -10,24 +10,25 @@
 #define _SERVER_H
 #include "prelude.h"
 
-typedef struct _userAnnounceMessage {
+typedef struct _serverId {
     char *hostname;
     int port;
-} userAnnounceMessage;
+} serverId;
 
-typedef struct _candidateAnnounceMessage {
-    char *hostname;
-    int port;
+typedef struct _clientAnnounceMessage {
+    serverId sender;
+} clientAnnounceMessage;
+
+typedef struct _masterAnnounceMessage {
+    serverId sender;
 } candidateAnnounceMessage;
 
 typedef struct _successorAnnounceMessage {
-    char *hostname;
-    int port;
+    serverId sender;
 } successorAnnounceMessage;
 
 typedef struct _callElectionMessage {
-    char *hostname;
-    int port;
+    serverId sender;
 } callElectionMessage;
 
 typedef struct _sendNumberMessage {
@@ -35,8 +36,7 @@ typedef struct _sendNumberMessage {
 } sendNumberMessage;
 
 typedef struct _jobRequestMessage {
-    char *hostname;
-    int port;
+    serverId sender;
 } jobRequestMessage
 
 /*
