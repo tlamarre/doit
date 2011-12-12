@@ -198,14 +198,50 @@ void bulletin_send_post(int bulletin_socket) {
   } while (strcmp(buffer,BULLETIN_TERMINATE));
 }
 
-void bulletin_sendservernote(char *server,char *message) {
+void bulletin_sendservernote(char *server,int port,char *message) {
   int connection;
   int connect_result;
-    connect_result = bulletin_make_connection_with(server,20000,&connection);
-    if (connect_result < 0) bulletin_exit(connect_result);
-
-    send_string(connection,message);
+    connect_result = bulletin_make_connection_with(server,port,&connection);
+    if (connect_result < 0) {
+      printf("Could not establish connection.");
+    }
+    else {
+      send_string(connection,message);
+    }
 }
+
+void bulletin_replicate(char *server,int port,char *message,dict_t *serverD,dict_t *candidateD,int candidateNum) {
+  int connection;
+  int connect_result;
+    connect_result = bulletin_make_connection_with(server,port,&connection);
+    if (connect_result < 0) {
+      findNewSuccessor(serverD,candidateD,candidateNum);
+    }
+    else {
+      send_string(connection,message);
+    }
+}
+
+void findNewSuccessor(dict_t *serverD,dict_t *candidateD,int candidateNum) {
+  char *serverName;
+  char *updateMessage;
+  char *updateNumber;
+  serverId *successor;
+  serverId *master;
+
+  updateMessage = (char *)malloc(256);
+  updateNumber = (char *)malloc(128);
+
+  serverName = getUniqueEntry(serverD,candidateD);
+  changeNameOfEntry(server,"Successor",serverD);
+  successor = getServerId("Successor",serverD);
+  master = getServerId("Master",serverD);
+  updateMessage = "candidateAnnounce$$hostname:%s$$port:%d$$";
+  bulletin_sendservernote(master->hostname,master->port,updateMessage);
+  updateNumber = ("becomeCandidate$$candidateNumber:%d",candidateNum + 1);
+  bulletin_sendservernote(successor->hostname,successor->port,updateNumber);
+}
+  
 
 void bulletin_recv_post(int bulletin_socket) {
   char buffer[256];
@@ -218,24 +254,201 @@ void bulletin_recv_post(int bulletin_socket) {
   }while (length >= 0 && strcmp(buffer,BULLETIN_TERMINATE)); 
 }
 
-void bulletin_recvnote(int bulletin_socket) {
-  char buffer[256];
-  int length;
-  char *trent;
+void addNewServer(pstruct_t *pstruct) {
+  char *newHost;
+  serverId *newServer;
+  int port;
+  dict_t *serverD;
 
-  trent = "trent.reed.edu";
-  // repeatedly post lines sent by the client
-  //do {
-    // receive a string from this client's connection socket
-    length = recv_string(bulletin_socket,buffer,255);
-    bulletin_sendservernote(trent,buffer);
-    close(bulletin_socket);
-  //} while (length >= 0 && strcmp(buffer,BULLETIN_TERMINATE)); 
+  newServer = (serverId *)malloc(sizeof(serverId));
+
+  newHost = getVal("hostname",pstruct->note);
+  port = atoi(getVal("port",pstruct->note);
+  newServer->newHost = newHost;
+  newServer->port = port;
+
+  serverD = pstruct->D;
+  insertServerD(newHost,serverD,newServer);
+  pthread_exit(NULL);
+}
+  
+void addNewClient(pstruct_t *pstruct) {
+  char *newHost;
+  serverId *newServer;
+  int port;
+  dict_t *serverD;
+
+  newServer = (serverId *)malloc(sizeof(serverId));
+
+  newHost = getVal("hostname",pstruct->note);
+  port = atoi(getVal("port",pstruct->note);
+  newServer->newHost = newHost;
+  newServer->port = port;
+
+  serverD = pstruct->D;
+  insertServerD(newHost,serverD,newServer);
+  pthread_exit(NULL);
+}
+
+void addNewSuccessor(pstruct_t *pstruct) {
+  char *newHost;
+  serverId *newServer;
+  int port;
+  dict_t *serverD;
+
+  newServer = (serverId *)malloc(sizeof(serverId));
+
+  newHost = getVal("hostname",pstruct->note);
+  port = atoi(getVal("port",pstruct->note);
+  newServer->newHost = newHost;
+  newServer->port = port;
+
+  serverD = pstruct->D;
+  insertServerD("Successor",serverD,newServer);
+  pthread_exit(NULL);
+}
+
+void addNewMaster(pstruct_t *pstruct) {
+  char *newHost;
+  serverId *newServer;
+  int port;
+  dict_t *serverD;
+
+  newServer = (serverId *)malloc(sizeof(serverId));
+
+  newHost = getVal("hostname",pstruct->note);
+  port = atoi(getVal("port",pstruct->note);
+  newServer->newHost = newHost;
+  newServer->port = port;
+
+  serverD = pstruct->D;
+  insertServerD("Master",serverD,newServer);
+  pthread_exit(NULL);
+}
+
+void handleJobRequestMessage (serverId *runner, dict_t jobD) {
+  char *jobAnswer;
+  jobAnswer = (char *)malloc(sizeof(char)*256);
+
+  if (jobD->head != NULL) {
+  jobAnswer = keyValue("jobId",(char *)getJobId(jobD->head->nick,jobD));
+  }
+  else {
+  jobAnswer = "NoJob";
+  }
+  bulletin_sendservernote(runner->hostname,runner->port,jobAnswer);
+}
+
+void sendCandidateNumber(pstruct_t *pstruct) {
+  char *hostname;
+  int port;
+  char *candidateMessage = (char *)malloc(64);
+  
+  hostname = getVal("hostname",pstruct->note);
+  port = atoi(getVal("port",pstruct->note);
+  candidateMessage = ("candidateNumber:%s",getVal(candidateNumber,pstruct->note));
+  bulletin_sendservernote(hostname,port,candidateMessage);
+  pthread_exit(NULL);
+}
+
+void propogateMessage(pstruct_t *pstruct) {
+  char *hostname;
+  int port;
+  serverId *successor;
+
+  successor = getServerId("Successor",pstruct->D);
+  bulletin_replicate(successor->hostname,successor->port,pstruct->note,pstruct->serverD,pstruct->candidateD,pstruct->candidateNum);
+}
+
+void bulletin_recvnote(int bulletin_socket,dict_t *serverD,dict_t *candidateD,int candidateNum) {
+  char buffer[512];
+  int length;
+  char *note;
+  char *messageType;
+  serverId *master;
+  pstruct_t *pstruct;
+  pthread_t *thread;
+  int t = 0;
+
+  if (candidateNum > 0) {
+  char *propogationNote;
+  propogateStruct_t *propogationStruct;
+  pthread_t *propogationThread;
+  }
+
+  note = (char *)malloc(sizeof(buffer));
+  messageType = (char *)malloc(sizeof(char)*64);
+  pstruct = (pstruct_t *)malloc(sizeof(pstruct_t));
+  length = recv_string(bulletin_socket,buffer,511);
+  close(bulletin_socket);
+  strcpy(note,buffer);
+  if(candidateNum > 0) {
+    propogationNote = (char *)malloc(sizeof(buffer));
+    propogationThread = (pstruct_t *)malloc(sizeof(propogationStruct_t);
+    strcpy(propogationNote,buffer);
+    propogationStruct->note = propogationNote;
+    propogationStruct->serverD = serverD;
+    propogationStruct->candidateD = candidateD;
+    propogationStruct->candidateNum = candidateNum;
+  }
+  printf("buffer is: %s\n",buffer);
+  messageType = strtok(note,"$$");
+  pstruct->note = note;
+  pstruct->D = userD;
+  if(strcmp(messageType,"clientAnnounce") {
+    pthread_create(&thread,NULL,addNewClient,(void *)pstruct);
+    if(candidateNum > 0) {
+      pthread_create(&propogationThread,NULL,propogateMessage,(void *)propogationStruct);
+    }
+  }
+  else if(strcmp(messageType,"masterAnnounce") {
+    pthread_create(&thread,NULL,addNewMaster,(void *)pstruct);
+    if(candidateNum > 0) {
+      pthread_create(&propogationThread,NULL,propogateMessage,(void *) propogationStruct);
+    }
+  } 
+  else if(strcmp(messageType,"successorAnnounce") {
+    pthread_create(&thread,NULL,addNewSuccessor,(void *)pstruct);
+    if(candidateNum > 0) {
+      pthread_create(&propogationThread,NULL,propogateMessage,(void *) propogationStruct);
+    }
+  }
+  else if(strcmp(messageType,"election") {
+    if(candidateNum != 0) {
+      note = strcat(note,"$$candidateNumber:%d",candidateNum);
+      pthread_create(&thread,NULL,sendCandidateNumber,(void *)pstruct);
+    }
+  }
+  else if(strcmp(messageType,"jobRequest") {
+    if (candidateNum == 1) {
+      pthread_create(&thread,NULL,handleJobRequestMessage,(void *)pstruct);
+    }
+    else {
+      note = strcat(messageType,note);
+      master = getServerId(userD,"Master");
+      bulletin_sendservernote(master->hostname,master->port,note);
+    }
+  }
+  else if(strcmp(messageType,"becomeCandidate") {
+    candidateNum = getVal("candidateNumber",note);
+    learnDictionaries();
+  }
+  for(t = 0;t < 256;t++) {
+    buffer[t] = 0;
+  }
+}
+
+void learnDictionaries () {
+//Here will be the code to read dictionaries from files or otherwise learn about the 
+//dictionaries in the system that the candidates are responsible for.
 }
 
 int main(int argc, char **argv) {
   int connection, listener;
   int connect_result;
+  int candidateNumber = 0;
+  dict_t *serverD = newD(10);
+  dict_t *candidateD = newD(10);
 
   if (argc < 2 && argc > 3) {
     fprintf(stderr,"bulletin: two many arguments.\n");
@@ -254,7 +467,7 @@ int main(int argc, char **argv) {
     while (1) {
       connect_result = bulletin_wait_for_connection(listener,&connection);
       if (connect_result < 0) bulletin_exit(connect_result);
-      bulletin_recvnote(connection);
+      bulletin_recvnote(connection, serverD, candidateD, candidateNumber);
       close(connection);
     }
   } else {

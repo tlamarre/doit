@@ -14,20 +14,14 @@ node_t *originalNode(char *name, dict_t *D) {
   return n;
 }
 
-void insertD(char *userName, dict_t *D, char *userAdress, int port) {
+void insertServerD(char *hostName, dict_t *D, serverId *serverId) {
   node_t *n;
   node_t *ogNode;
-  userEntry *entry;
-  userEntry *branch;
-
-  entry = (userEntry *)malloc(sizeof(userEntry));
-  entry->address = userAdress;
-  entry->port = port;
   
   pthread_mutex_lock(D->lock);
-  if (!containsD(userName,D)) {
+  if (!containsD(serverId->hostname,D)) {
     n = (node_t *)malloc(sizeof(node_t));
-    n->entry = userName;
+    n->entry = serverId->hostname;
     n->next = D->head;
     D->head = n;
     n->down = entry;
@@ -41,6 +35,8 @@ void insertD(char *userName, dict_t *D, char *userAdress, int port) {
   }
   pthread_mutex_unlock(D->lock);
 }
+
+void insertJobD(dict_t *D, 
 
 boolean containsD(char *name, dict_t *D) {
   node_t *n;
@@ -70,6 +66,16 @@ char *getLocation(char *entry,dict_t *D) {
   }
   user = n->down;
   return (user->address);
+}
+
+serverId *getServerId(char *name,dict_t *D) {
+   node_t *n;
+  serverId *server;
+  n = D->head;
+  while (n != NULL && strcmp(entry,n->entry) != 0) {
+    n = n->next;
+  }
+  return n->serverId;
 }
 
 
