@@ -2,28 +2,7 @@
 // Reed College
 // Fall 2011
 //
-// bulletin.c
-//
-// This code implements a Unix executable that 
-// can act either as a client or a server of a
-// remote bulletin posting service.
-//
-// Run as "bulletin 20000", it will set up a
-// bulletin server that receives a posts from
-// a series of clients that connect to it, 
-// listening on port 20000.
-//
-// Run as "bulletin bob.reed.edu", it will connect
-// to a bulletin server listening on port 20000
-// on the machine named bob.reed.edu, and send
-// a single post on the machine.  The post can
-// be entered by the program's user as a series.
-// line with the four letters "STOP".
-//
-// It is a simple example of the Berkeley socket
-// API for performing networked communications via
-// TCP/IP.
-//
+// serverListen.c
 
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -1,0 +1,19 @@
+Client
+
+Submit file
+royalty_client "file" <path> <nickname>
+"file" ->  states that a file is being submitted
+<path> -> local path to the file
+<nickname> -> name the local client will refer to the file by. Stored in local dictionary and mapped to a file ID used in the network
+
+Submit job
+royalty_client "job" <nickname> <source> <dependencies ... >
+"job" -> states that a new job is being submitted
+<nickname> -> name the local client will refer to the job by. Stored in local dictionary
+<source> -> nickname of source file; parsed to file ID by dictionary
+
+Check on job
+royalty_client "result" <nickname>
+"result" -> states that the result of a job is being queried
+<nickname> -> local handle on the job requested; parsed to job ID
+prints "Job incomplete." or puts file in <job_nickname>
