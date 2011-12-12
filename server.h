@@ -10,6 +10,18 @@
 #define _SERVER_H
 #include "prelude.h"
 
+typedef struct _pstruct_t {
+  char *note;
+  dict_t *D;
+} pstruct_t;
+
+typedef struct _propogationStruct_t {
+  char *note;
+  dict_t *serverD;
+  dict_t *candidateD;
+  int candidateNum;
+} propogationStruct_t;
+
 typedef struct _serverId {
     char *hostname;
     int port;
