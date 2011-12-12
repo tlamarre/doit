@@ -6,6 +6,7 @@
 #define	HOSTNAME "eve.reed.edu"	
 #include "fileDictionary.h"
 #include "jobDictionary.h"
+#include <wait.h>
 
 int main(int argc, char *argv) {
 	printf("Usage: \n");
@@ -18,10 +19,10 @@ int main(int argc, char *argv) {
 }
 
 int parseInput() {
-	char argv[MAXARGV];
+	char *argv; argv = (char *)malloc(sizeof(char)*MAXARGV);
 	//FILE *source;
-	char action[MAXNAME];
-	char message[MAXARGV];
+	char *action; action = (char *)malloc(sizeof(char)*MAXNAME);
+	char *message; message = (char *)malloc(sizeof(char)*MAXARGV);
 
 	struct _file_dict_t *FileD;
 	job_dict_t *JobD;
@@ -34,9 +35,9 @@ int parseInput() {
 	action = strtok(argv, " ");
 
 	if (0 == strcmp(action,"file")) {
-		char path[MAXPATH];
-		char truepath[MAXPATH];
-		char nick[MAXNAME];
+		char *path; path = (char *)malloc(sizeof(char)*MAXPATH);
+		char *truepath; truepath = (char *)malloc(sizeof(char)*MAXPATH);
+		char *nick; nick = (char *)malloc(sizeof(char)*MAXNAME);
 		int newID;
 		
 		//sscanf(argv,"%s %s %s",action,path,nick);
@@ -55,7 +56,7 @@ int parseInput() {
 	} else if (0 == strcmp(action,"job")) {
 		char fileNicks[MAXDEPENDENCY][MAXNAME];
 		int fileIDs[MAXDEPENDENCY];
-		char nick[MAXNAME];
+		char *nick; nick = (char *)malloc(sizeof(char)*MAXNAME);
 		int newID;
 		int i = 0;
 		
@@ -63,7 +64,7 @@ int parseInput() {
 		nick = strtok(NULL," ");
 
 		while(0 != strcmp(argv,"")) {
-			fileNicks[i]=strtok(NULL," ");
+			strcpy(fileNicks[i],strtok(NULL," "));
 			fileIDs[i]=getFileID(fileNicks[i],FileD);
 			i++;
 		}
@@ -80,11 +81,11 @@ int parseInput() {
 		newID = sendData(message);	
 		insertJobD(nick,JobD,newID);		
 	} else if (0 == strcmp(action,"result")) {
-		char nick[MAXNAME];
+		char *nick; nick = (char *)malloc(sizeof(char)*MAXNAME);
 		int jobID;
 		int connect_result,listener,connection;
 		char outputPath[MAXPATH];
-		char receivedType[MAXNAME];
+		char *receivedType; receivedType = (char *)malloc(sizeof(char)*MAXNAME);
 		//FILE *source;
 		//FILE *dest;
 		int cpExit;
@@ -99,7 +100,7 @@ int parseInput() {
 
 		connect_result = bulletin_make_connection_with(HOSTNAME,PORT,&connection);
 	  	if (connect_result < 0) bulletin_exit(connect_result);
-	  	send_string(server,message);
+	  	send_string(HOSTNAME,message);
 		
 		//listen
 		connect_result = bulletin_set_up_listener(PORT,&listener);
@@ -107,11 +108,11 @@ int parseInput() {
 		recv_string(connection, outputPath, MAXARGV);
 
 		receivedType = strtok(outputPath,"$$");
-		if(strcmp(receivedType,"path"){ 
+		if(strcmp(receivedType,"path")){ 
 			printf("Job %s incomplete.\n",nick);
  		} //if receivedType is not "path"
 		else {
-			outputPath = realpath(outputPath,NULL);
+			strcpy(outputPath, realpath(outputPath,NULL));
 			//source = fopen(outputPath,"r");
 			//dest = fopen(nick,"w");
 			pid = fork();
@@ -120,10 +121,10 @@ int parseInput() {
         			execl("/bin/cp", "/bin/cp", outputPath, nick, (char *)0);
     			}
     			else if (pid < 0) {
-    				printf("Job complete, but file not found.\n")
+    				printf("Job complete, but file not found.\n");
     			}
     			else {
-			        pid_t ws = wait(cpExit);
+			        pid_t ws = wait(&cpExit);
 				printf("Job complete. Output file at \"%s\" in this directory.\n",nick);
 			}
 		}
@@ -140,7 +141,7 @@ int sendData(char *message){
 	//speak
 	connect_result = bulletin_make_connection_with(HOSTNAME,PORT,&connection);
   	if (connect_result < 0) bulletin_exit(connect_result);
-  	send_string(server,message);
+  	send_string(HOSTNAME,message);
 	
 	//listen
 	connect_result = bulletin_set_up_listener(PORT,&listener);
