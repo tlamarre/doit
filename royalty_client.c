@@ -4,9 +4,11 @@
 #define MAXDEPENDENCY 32
 #define PORT 20000
 #define	HOSTNAME "eve.reed.edu"	
+#include "fileDictionary.h"
+#include "jobDictionary.h"
 
 int main(int argc, char *argv) {
-	printf("Usage:\n");
+	printf("Usage: \n");
 	printf("To submit a file: file <path> <nickname>\n");
 	printf("To submit a job to run: job <nickname> <source> <dependencies ... >\n");
 	printf("To check output of a job: result <nickname>\n");
@@ -21,7 +23,7 @@ int parseInput() {
 	char action[MAXNAME];
 	char message[MAXARGV];
 
-	file_dict_t *FileD;
+	struct _file_dict_t *FileD;
 	job_dict_t *JobD;
 
 	//get input
@@ -82,21 +84,17 @@ int parseInput() {
 		int jobID;
 		int connect_result,listener,connection;
 		char outputPath[MAXPATH];
-		char receivedType[MAXNAME];		
+		char receivedType[MAXNAME];
+		//FILE *source;
+		//FILE *dest;
+		int cpExit;
+		pid_t pid;
 
 		nick = strtok(NULL," ");
 
 		jobID = getJobID(nick,JobD);		
 		message = strcat(action,"$$");
 		message = strcat(message,jobID);
-
-//		outputID = sendRequest(message); //returns a nonzero int fileID if job is finished or 0 if not.
-//		if (!outputID) {
-//			printf("Job %s incomplete.\n",nick);
-//		}
-//		else {
-//			getFile(outputID);
-		//speak
 
 
 		connect_result = bulletin_make_connection_with(HOSTNAME,PORT,&connection);
@@ -109,11 +107,26 @@ int parseInput() {
 		recv_string(connection, outputPath, MAXARGV);
 
 		receivedType = strtok(outputPath,"$$");
-		if(strcmp(receivedType,"path") {printf("Job %s incomplete.\n",nick);} //if receivedType is not "path"
+		if(strcmp(receivedType,"path"){ 
+			printf("Job %s incomplete.\n",nick);
+ 		} //if receivedType is not "path"
 		else {
-			
+			outputPath = realpath(outputPath,NULL);
+			//source = fopen(outputPath,"r");
+			//dest = fopen(nick,"w");
+			pid = fork();
+
+			if (pid == 0) {
+        			execl("/bin/cp", "/bin/cp", outputPath, nick, (char *)0);
+    			}
+    			else if (pid < 0) {
+    				printf("Job complete, but file not found.\n")
+    			}
+    			else {
+			        pid_t ws = wait(cpExit);
+				printf("Job complete. Output file at \"%s\" in this directory.\n",nick);
+			}
 		}
-//		}
 	}
 }
 
@@ -137,25 +150,4 @@ int sendData(char *message){
 	connect_result = atoi(buffer);
 	return connect_result;
 }
-
-void tell_server_who_i_am(char *name,char *location,int listenPort) {
-  char *serverInfo;
-  char *eve;
-  char *portString;
-  int server;
-  int connect_result;
-
-  eve = "eve.reed.edu";
-  
-  serverInfo = (char *)malloc(sizeof(char) * 128);
-
-  serverInfo = strcat(name,"$$");
-  strcat(serverInfo,location);
-  strcat(serverInfo,"$$");
-  strcat(serverInfo,(char *)&listenPort);
-  strcat(serverInfo,"##");
-  connect_result = bulletin_make_connection_with(eve,20000,&server);
-  if (connect_result < 0) bulletin_exit(connect_result);
-  send_string(server,serverInfo);
-}  
 

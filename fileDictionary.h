@@ -18,7 +18,7 @@ typedef struct _file_node_t {
 } file_node_t;
 
 
-dict_t *newFileD(int initial_size);
+file_dict_t *newFileD(int initial_size);
 boolean containsFileD(char *nick, file_dict_t *D);
 void insertFileD(char *nick, file_dict_t *D,int fileID);
 void outputFileD(file_dict_t *D);

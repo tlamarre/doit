@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "userDictionary.h"
+#include "fileDictionary.h"
 #include "prelude.h"
 
 file_node_t *originalNode(char *name, file_dict_t *FileD) {
@@ -17,23 +17,22 @@ file_node_t *originalNode(char *name, file_dict_t *FileD) {
 void insertFileD(char *nick, file_dict_t *FileD, int fileID) {
   file_node_t *n;
   file_node_t *ogNode;
-  userEntry *branch;
 
   
-  if (!containsFileD(userName,FileD)) {
-    n = (node_t *)malloc(sizeof(node_t));
+  if (!containsFileD(nick,FileD)) {
+    n = (file_node_t *)malloc(sizeof(file_node_t));
     n->nickname = nick;
     n->next = FileD->head;
     FileD->head = n;
     n->fileID = fileID;
   } else {  //Here if the word is already in the dictionary, the fileID will be replaced with the newly-defined one
-    ogNode = originalNode(userName, FileD);
+    ogNode = originalNode(nick, FileD);
     ogNode->fileID = fileID;
   }
 }
 
 boolean containsFileD(char *name, file_dict_t *FileD) {
-  node_t *n;
+  file_node_t *n;
   n = FileD->head;
   while (n != NULL && strcmp(name,n->nickname) != 0) {
     n = n->next;
@@ -50,7 +49,7 @@ file_dict_t *newFileD(int initial_size) {
 }
 
 int getFileID(char *nick,file_dict_t *FileD) {
-  node_t *n;
+  file_node_t *n;
   n = FileD->head;
   while (n != NULL && strcmp(nick,n->nickname) != 0) {
     n = n->next;
@@ -60,8 +59,8 @@ int getFileID(char *nick,file_dict_t *FileD) {
 
 
 void outputFileD(file_dict_t *FileD) {
-  node_t *n;
-  node_t *branch;
+  file_node_t *n;
+  file_node_t *branch;
   boolean first;
   n = FileD->head;
   printf("{");

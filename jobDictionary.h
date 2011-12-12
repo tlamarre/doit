@@ -18,10 +18,10 @@ typedef struct _job_node_t {
 } job_node_t;
 
 
-dict_t *newJobD(int initial_size);
-boolean containsJobD(char *name, job_dict_t *D);
+job_dict_t *newJobD(int initial_size);
+boolean containsJobD(char *nick, job_dict_t *D);
 void insertJobD(char *nick, job_dict_t *D,int jobID);
 void outputJobD(job_dict_t *D);
-int getJobID(char *nick,job_dict_t *JobD)
+int getJobID(char *nick,job_dict_t *JobD);
 
 #endif

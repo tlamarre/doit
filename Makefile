@@ -9,6 +9,9 @@ lazerChatTalk:
 lazerChatListen:
 	gcc -lpthread -o lazerChatListen lazerChatListen.c
 
+client: royalty_client.o fileDictionary.o jobDictionary.o
+	 gcc -o client royalty_client.o fileDictionary.o jobDictionary.o
+
 %.o: %.c 
 	gcc -c -o $@ $<
 

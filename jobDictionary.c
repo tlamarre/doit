@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "userDictionary.h"
+#include "jobDictionary.h"
 #include "prelude.h"
 
 job_node_t *originalNode(char *name, job_dict_t *JobD) {
@@ -17,23 +17,22 @@ job_node_t *originalNode(char *name, job_dict_t *JobD) {
 void insertJobD(char *nick, job_dict_t *JobD, int jobID) {
   job_node_t *n;
   job_node_t *ogNode;
-  userEntry *branch;
 
   
-  if (!containsJobD(userName,JobD)) {
-    n = (node_t *)malloc(sizeof(node_t));
+  if (!containsJobD(nick,JobD)) {
+    n = (job_node_t *)malloc(sizeof(job_node_t));
     n->nickname = nick;
     n->next = JobD->head;
     JobD->head = n;
     n->jobID = jobID;
   } else {  //Here if the word is already in the dictionary, the jobID will be replaced with the newly-defined one
-    ogNode = originalNode(userName, JobD);
+    ogNode = originalNode(nick, JobD);
     ogNode->jobID = jobID;
   }
 }
 
 boolean containsJobD(char *name, job_dict_t *JobD) {
-  node_t *n;
+  job_node_t *n;
   n = JobD->head;
   while (n != NULL && strcmp(name,n->nickname) != 0) {
     n = n->next;
@@ -50,7 +49,7 @@ job_dict_t *newJobD(int initial_size) {
 }
 
 int getJobID(char *nick,job_dict_t *JobD) {
-  node_t *n;
+  job_node_t *n;
   n = JobD->head;
   while (n != NULL && strcmp(nick,n->nickname) != 0) {
     n = n->next;
@@ -60,8 +59,8 @@ int getJobID(char *nick,job_dict_t *JobD) {
 
 
 void outputJobD(job_dict_t *JobD) {
-  node_t *n;
-  node_t *branch;
+  job_node_t *n;
+  job_node_t *branch;
   boolean first;
   n = JobD->head;
   printf("{");
