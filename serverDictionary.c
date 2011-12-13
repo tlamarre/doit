@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "userDictionary.h"
+#include "serverDictionary.h"
 #include "prelude.h"
 
 node_t *originalNode(char *name, dict_t *D) {
@@ -15,6 +15,7 @@ node_t *originalNode(char *name, dict_t *D) {
 }
 
 void insertServerD(char *hostName, dict_t *D, serverId *serverId) {
+    //TODO: can we remove the hostName arg? doesn't look like it's used. -TL
   node_t *n;
   node_t *ogNode;
   

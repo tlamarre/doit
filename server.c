@@ -7,6 +7,8 @@
 #include <netdb.h>
 #include <errno.h>
 
+#include "server.h"
+
 
 #define TCP_PROTOCOL 6
 
@@ -264,7 +266,7 @@ void addNewServer(pstruct_t *pstruct) {
 
   newHost = getVal("hostname",pstruct->note);
   port = atoi(getVal("port",pstruct->note);
-  newServer->newHost = newHost;
+  newServer->hostName = newHost;
   newServer->port = port;
 
   serverD = pstruct->D;

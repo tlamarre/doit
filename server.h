@@ -47,6 +47,12 @@ typedef struct _sendNumberMessage {
     int n;
 } sendNumberMessage;
 
+typedef struct _jobDescriptor {
+    int id;
+    char *sourceFilename; // filename of script to be exec'd
+    char *outputFilename; // filename to contain output results
+}
+
 typedef struct _jobRequestMessage {
     serverId sender;
 } jobRequestMessage
