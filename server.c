@@ -433,6 +433,18 @@ void bulletin_recvnote(int bulletin_socket,dict_t *serverD,dict_t *candidateD,in
     candidateNum = getVal("candidateNumber",note);
     learnDictionaries();
   }
+  else if(strcmp(messageType,"becomeMaster") {
+    candidateNum = 1;
+    propogationStruct->note = "incrementSuccessor$$";
+    pthread_create(&propogationThread,NULL,propogateMessage,(void *)propogationStruct);
+  }
+  else if(strcmp(messageType,"incrementSuccessor") {
+    candidateNum++;
+    propogationStruct->note = "incrementSuccessor$$";
+    if(candidateNum < 5) { //change this to check how many machines we want as candidates.
+      pthread_create(&propogationThread,NULL,propogateMessage,(void *)propogationStruct);
+    }
+  }
   for(t = 0;t < 256;t++) {
     buffer[t] = 0;
   }
