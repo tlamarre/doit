@@ -20,6 +20,18 @@
 #define BULLETIN_CONNECT_ERROR         (-3)
 #define BULLETIN_TALK_ERROR            (-4)
 
+serverId *serverId(char *nHostname, int nPort) {
+    /*
+     * serverId: container for host/port identifiers
+     */
+
+  serverId *id;
+  id = (serverId *)malloc(sizeof(serverId));
+  id->hostname = nHostname;
+  id->port = nPort;
+  return id;
+}
+
 char *keyValue(char *key, char *value) {
 
   char *tokenizedString;

@@ -49,6 +49,7 @@ typedef struct _sendNumberMessage {
 
 typedef struct _jobDescriptor {
     int id;
+    serverId sender;
     char *sourceFilename; // filename of script to be exec'd
     char *outputFilename; // filename to contain output results
 }
@@ -72,6 +73,13 @@ typedef struct _jobOrderMessage {
      */
     char **neededBy;
 } jobOrderMessage;
+
+typedef struct _jobCompleteMessage {
+    int id;
+    serverId sender;
+}
+
+serverId *serverId(char *hostname, int port);
 
 char *keyValue(char *key, char *value);
 
@@ -97,7 +105,25 @@ void bulletin_sendservernote(char *server,char *message);
 
 void bulletin_recv_post(int bulletin_socket);
 
+void bulletin_replicate(char *server, int port, char *message, dict_t *serverD, dict_t *candidateD, int candidateNum);
+
+void findNewSuccessor(dict_t *serverD, dict_t *candidateD, int candidateNum);
+
+void addNewServer(pstruct_t *pstruct);
+
+void addNewClient(pstruct_t *pstruct);
+
+void addNewSuccessor(pstruct_t *pstruct);
+
+void addNewMaster(pstruct_t *pstruct);
+
+void handleJobRequestMessage(serverId *runner, dict_t jobD);
+
+void sendCandidateNumber(pstruct_t *pstruct);
+
 void bulletin_recvnote(int bulletin_socket);
+
+void addNewWorker(pstruct_t *pstruct);
 
 
 #endif

@@ -13,7 +13,7 @@ typedef struct _job_dict_t {
 
 typedef struct _job_node_t {
   char *nickname;
-  int jobID;
+  int jobID; // TODO: Make job dictionaries actually contain jobDescriptor structs -TL
   struct _job_node_t *next;
 } job_node_t;
 
