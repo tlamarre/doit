@@ -22,6 +22,7 @@
 #define BULLETIN_TALK_ERROR            (-4)
 
 serverId *workerId = serverId(gethostname(), atoi(argv[1]));
+bool waiting_for_job = false;
 
 void worker_recvnote(int socket) {
   char buffer[512];
@@ -40,6 +41,7 @@ void worker_recvnote(int socket) {
   messageType = strtok(note, "$$");
   
   if(strcmp(messageType, "jobOrder")) {
+    waiting_for_job = false;
     jobDescriptor *job;
     job = (job *)malloc(sizeof(jobDescriptor);
     job->sender->hostname = getVal("hostname", note);
@@ -47,6 +49,8 @@ void worker_recvnote(int socket) {
     job->sourceFilename = getVal("src", note);
     job->outputFilename = getVal("out", note);
     pthread_create(&thread, NULL, handleJobOrder, (void *)job);
+  } else if (strcmp(messageType, "noJob") {
+    waiting_for_job = true;
   }
 }
 
@@ -69,5 +73,6 @@ int main(int argc, char **argv) {
     if (connect_result < 0) bulletin_exit(connect_result);
     worker_recvnote(int socket);
     close(connection);
+    if (waiting_for_work);
   }
 }
