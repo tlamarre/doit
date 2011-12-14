@@ -362,6 +362,35 @@ void propogateMessage(pstruct_t *pstruct) {
   bulletin_replicate(successor->hostname,successor->port,pstruct->note,pstruct->serverD,pstruct->candidateD,pstruct->candidateNum);
 }
 
+void recvVote(int connection,  int currentPosition, serverId nextMaster) {
+  char buffer[512];
+  int length;
+  char *message;
+
+  length = recv_string(bulletin_socket,buffer,511);
+  close(bulletin_socket);
+  strcpy(message,buffer);
+
+  if(atoi(getVal("candidateNum",message)) < currentPosition) {
+    nextMaster->hostname = getVal("hostname",message);
+    nextMaster->port = atoi(getVal("port",message));
+  }
+}
+
+void holdElection(serverD *serverD) {
+  serverId nextMaster;
+  int currentPosition = 99;
+  nextMaster = (serverId *)malloc(sizeof(serverId));
+  while (currentPosition != 2) {
+      connect_result = bulletin_wait_for_connection(listener,&connection);
+      if (connect_result < 0) bulletin_exit(connect_result);
+      bulletin_recvVote(connection, currentPosition, nextMaster);
+      close(connection);
+    }
+  bulletin_sendservernote(nextMaster->hostname,nextMaster->port,"becomeMaster$$");
+  insertServerD("Master",serverD,nextMaster);
+}
+
 void bulletin_recvnote(int bulletin_socket,dict_t *serverD,dict_t *candidateD,int candidateNum) {
   char buffer[512];
   int length;
@@ -434,6 +463,18 @@ void bulletin_recvnote(int bulletin_socket,dict_t *serverD,dict_t *candidateD,in
   else if(strcmp(messageType,"becomeCandidate") {
     candidateNum = getVal("candidateNumber",note);
     learnDictionaries();
+  }
+  else if(strcmp(messageType,"becomeMaster") {
+    candidateNum = 1;
+    propogationStruct->note = "incrementSuccessor$$";
+    pthread_create(&propogationThread,NULL,propogateMessage,(void *)propogationStruct);
+  }
+  else if(strcmp(messageType,"incrementSuccessor") {
+    candidateNum++;
+    propogationStruct->note = "incrementSuccessor$$";
+    if(candidateNum < 5) { //change this to check how many machines we want as candidates.
+      pthread_create(&propogationThread,NULL,propogateMessage,(void *)propogationStruct);
+    }
   }
   for(t = 0;t < 256;t++) {
     buffer[t] = 0;
