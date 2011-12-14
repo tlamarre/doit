@@ -21,8 +21,8 @@
 #define BULLETIN_CONNECT_ERROR         (-3)
 #define BULLETIN_TALK_ERROR            (-4)
 
-serverId *workerId = serverId(gethostname(), atoi(argv[1]));
-bool waiting_for_job = false;
+serverId *worker_id = serverId(gethostname(), atoi(argv[1]));
+boolean waiting_for_job = TRUE;
 
 void worker_recvnote(int socket) {
   char buffer[512];
@@ -41,26 +41,52 @@ void worker_recvnote(int socket) {
   messageType = strtok(note, "$$");
   
   if(strcmp(messageType, "jobOrder")) {
-    waiting_for_job = false;
+    waiting_for_job = FALSE;
     jobDescriptor *job;
     job = (job *)malloc(sizeof(jobDescriptor);
     job->sender->hostname = getVal("hostname", note);
     job->sender->port = getVal("port", note);
     job->sourceFilename = getVal("src", note);
     job->outputFilename = getVal("out", note);
-    pthread_create(&thread, NULL, handleJobOrder, (void *)job);
+    pthread_create(&thread, NULL, handle_job_order, (void *)job);
   } else if (strcmp(messageType, "noJob") {
-    waiting_for_job = true;
+    waiting_for_job = TRUE;
   }
 }
 
-void handleJobOrder(jobDescriptor *job, serverId *sender) {
-  char *srcFile = job->sourceFilename;
-  char *outFile = job->outputFilename;
-  char *cmd = strcat("/usr/bin/python ", srcFile, " >> ", outFile);
+void handle_job_order(jobDescriptor *job, serverId *sender) {
+  char *src = job->sourceFilename;
+  char *out = job->outputFilename;
+  char *cmd = strcat("/usr/bin/python ", src, " >> ", out);
   int result = system(cmd);
   char *reply = strcat("jobResult$$", keyValue("job", job->id), keyValue("result", itoa(result)));
   bulletin_sendservernote(sender->hostname, sender->port, reply);
+}
+
+serverId *lookup_manager() {
+  FILE *server_directory;
+  server_directory = fopen("server_directory.txt", "r");
+  char server_dir_str[1028];
+  fgets(server_dir_str, 1028, server_directory);
+
+  char *server_id_str[64];
+
+  int i = 0;
+  while (server_dir_str[i] != EOF && server_dir_str[i] != EOL){
+    server_id_str[i] = server_dir_str[i];
+  }
+}
+
+boolean can_contact_server(serverId *server) {
+    int connection;
+    int connect_result;
+    connect_result = bulletin_make_connection_with(server->hostname, server->port, &connection);
+    if (connect_result < 0) {
+      return FALSE;
+    } else {
+      close(connection);
+      return TRUE;
+    }
 }
 
 int main(int argc, char **argv) {
@@ -69,10 +95,15 @@ int main(int argc, char **argv) {
   job_dict_t *jobD;
 
   while (1) {
+    if (waiting_for_work) {
+      serverId *worker_manager = lookup_manager();
+      char *message = strcat("jobRequest$$", keyValue("hostname", worker_id->hostname), keyValue("port", itoa(worker_id->port)));
+      bulletin_sendservernote(worker_manager->hostname, worker_manager->port, message);
+    }
+
     connect_result = bulletin_wait_for_connection(listener,&connection);
     if (connect_result < 0) bulletin_exit(connect_result);
     worker_recvnote(int socket);
     close(connection);
-    if (waiting_for_work);
   }
 }

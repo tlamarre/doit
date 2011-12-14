@@ -17,5 +17,9 @@ typedef int boolean;
 #define NULL 0L
 #endif
 
+#ifndef EOL
+#define EOL '\n'
+#endif
+
 
 #endif
