@@ -74,6 +74,7 @@ serverId *lookup_manager() {
   int i = 0;
   while (server_dir_str[i] != EOF && server_dir_str[i] != EOL){
     server_id_str[i] = server_dir_str[i];
+    // read lines, test connections to server with can_contact_server
   }
 }
 
