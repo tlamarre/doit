@@ -95,6 +95,9 @@ int main(int argc, char **argv) {
   int connect_result;
   job_dict_t *jobD;
 
+  connect_result = bulletin_set_up_listener(atoi(argv[1]),&listener);
+  if (connect_result < 0) bulletin_exit(connect_result);
+
   while (1) {
     if (waiting_for_work) {
       serverId *worker_manager = lookup_manager();
